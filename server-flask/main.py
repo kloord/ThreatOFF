@@ -130,9 +130,24 @@ def upload_csv():
 def vista_previa():
     global processed_df
     if processed_df is None:
+        return jsonify({'status': 'error', 'message': 'No hay archivo procesado para mostrar'}), 400
+
+    # Reemplaza NaN por None
+    preview_df = processed_df.head(5).where(pd.notnull(processed_df.head(5)), None)
+    preview = preview_df.to_dict(orient='records')
+    columns = list(processed_df.columns)
+    return jsonify({
+        'status': 'success',
+        'preview': preview,
+        'columns': columns
+    })
+
+@app.route('/vista-previa/download', methods=['GET'])
+def descargar_csv():
+    global processed_df
+    if processed_df is None:
         return jsonify({'status': 'error', 'message': 'No hay archivo procesado para descargar'}), 400
 
-    # Convierte el DataFrame a CSV en memoria
     output = io.StringIO()
     processed_df.to_csv(output, index=False)
     output.seek(0)
