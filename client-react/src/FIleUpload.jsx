@@ -47,15 +47,13 @@ export default function FileUpload() {
       });
       const data = await res.json();
       let extraMsg = "";
-      if (filters.eliminarDuplicados && data.duplicados && Array.isArray(data.duplicados)) {
-        extraMsg = `Filas eliminadas (#): ${data.duplicados.join(", ")}`;
-      }
-      setMessage(data.message + (extraMsg ? `\n${extraMsg}` : ""));
+      // Elimina esta parte para que no muestre el mensaje aquí
+      setMessage(data.message);
       setStatus(data.status);
       setLoading(false);
       if (data.status === "success") {
         setTimeout(() => {
-          navigate("/vista-previa");
+          navigate("/vista-previa", { state: { eliminarDuplicados: filters.eliminarDuplicados } });
         }, 2000);
       }
     } catch {

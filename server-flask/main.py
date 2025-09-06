@@ -28,15 +28,14 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 def clean_resource(value):
     value = str(value).strip()
-    # Si es una IP con puerto, elimina el puerto
-    ip_port_match = re.match(r'(\d{1,3}(?:\.\d{1,3}){3})(:\d+)?', value)
-    if ip_port_match:
-        return ip_port_match.group(1)
+    # Elimina cualquier cosa antes de la IP (por ejemplo, "/")
+    ip_match = re.search(r'(\d{1,3}(?:\.\d{1,3}){3})(:\d+)?', value)
+    if ip_match:
+        return ip_match.group(1)
     # Si es una URL, extrae solo el dominio principal
     if '://' in value or value.startswith('www.'):
         parsed = urlparse(value)
         domain = parsed.netloc if parsed.netloc else parsed.path.split('/')[0]
-        # Elimina 'www.' si existe
         domain = domain.replace('www.', '')
         return domain
     # Si tiene "/" antes o después, elimina todo menos la IP o dominio
@@ -49,10 +48,11 @@ def clean_resource(value):
 
 # Variable global temporal
 processed_df = None
+duplicados = []
 
 @app.route('/upload', methods=['POST'])
 def upload_csv():
-    global processed_df
+    global processed_df, duplicados
     file = request.files.get('file')
     if not file:
         return jsonify({'status': 'error', 'message': 'No se envió ningún archivo'}), 400
@@ -102,10 +102,9 @@ def upload_csv():
     duplicados = []
     if eliminar_duplicados:
         if '#' in df.columns:
-            before = set(df['#'])
+            duplicated_mask = df.duplicated()
+            duplicados = df.loc[duplicated_mask, '#'].tolist()
             df = df.drop_duplicates()
-            after = set(df['#'])
-            duplicados = list(before - after)
         else:
             df = df.drop_duplicates()
 
@@ -128,18 +127,17 @@ def upload_csv():
 
 @app.route('/vista-previa', methods=['GET'])
 def vista_previa():
-    global processed_df
+    global processed_df, duplicados
     if processed_df is None:
         return jsonify({'status': 'error', 'message': 'No hay archivo procesado para mostrar'}), 400
-
-    # Reemplaza NaN por None
     preview_df = processed_df.head(5).where(pd.notnull(processed_df.head(5)), None)
     preview = preview_df.to_dict(orient='records')
     columns = list(processed_df.columns)
     return jsonify({
         'status': 'success',
         'preview': preview,
-        'columns': columns
+        'columns': columns,
+        'duplicados': duplicados
     })
 
 @app.route('/vista-previa/download', methods=['GET'])
