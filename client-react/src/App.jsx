@@ -20,7 +20,6 @@ function App() {
           color: '#fff',
         }}
       >
-        <img src={threatOffLogo} alt="ThreatOFF Logo" style={{height: '64px', marginRight: '24px'}} />
         <div
           style={{
             display: 'flex',

@@ -53,10 +53,15 @@ processed_df = None
 @app.route('/upload', methods=['POST'])
 def upload_csv():
     global processed_df
-    if 'file' not in request.files:
+    file = request.files.get('file')
+    if not file:
         return jsonify({'status': 'error', 'message': 'No se envió ningún archivo'}), 400
 
-    file = request.files['file']
+    # Recibe los filtros del frontend
+    eliminar_puertos = request.form.get('eliminarPuertos') == 'true'
+    quitar_espacios = request.form.get('quitarEspacios') == 'true'
+    eliminar_duplicados = request.form.get('eliminarDuplicados') == 'true'
+    cruzar_informacion = request.form.get('cruzarInformacion') == 'true'
 
     if not file.filename.endswith('.csv'):
         return jsonify({'status': 'error', 'message': 'El archivo debe ser formato CSV'}), 400
@@ -84,14 +89,42 @@ def upload_csv():
             'message': f'Faltan columnas requeridas: {", ".join(missing)}. Columnas detectadas: {", ".join(df.columns)}'
         }), 400
 
-    # Limpieza de la columna Resource
-    if 'Resource' in df.columns:
+    # Limpieza de la columna Resource SOLO si eliminar_puertos está activo
+    if eliminar_puertos and 'Resource' in df.columns:
         df['Resource'] = df['Resource'].apply(clean_resource)
+
+    # Quitar espacios redundantes (inicio y fin) en todas las columnas tipo texto SOLO si quitar_espacios está activo
+    if quitar_espacios:
+        for col in df.select_dtypes(include='object').columns:
+            df[col] = df[col].apply(lambda x: str(x).strip())
+
+    # Eliminar filas duplicadas y guardar los números (#) eliminados SOLO si eliminar_duplicados está activo
+    duplicados = []
+    if eliminar_duplicados:
+        if '#' in df.columns:
+            before = set(df['#'])
+            df = df.drop_duplicates()
+            after = set(df['#'])
+            duplicados = list(before - after)
+        else:
+            df = df.drop_duplicates()
+
+    # Si cruzar_informacion está activo, aquí podrías agregar la lógica correspondiente
+    # if cruzar_informacion:
+    #     ...tu lógica...
 
     # Guarda el DataFrame procesado en memoria
     processed_df = df
 
-    return jsonify({'status': 'success', 'message': 'Archivo válido y columna Resource limpiada'}), 200
+    # Respuesta con resumen
+    response = {
+        'status': 'success',
+        'message': 'Archivo procesado correctamente.',
+        'duplicados': duplicados
+    }
+    # Aquí puedes guardar df en memoria para la vista previa si lo necesitas
+
+    return jsonify(response)
 
 @app.route('/vista-previa', methods=['GET'])
 def vista_previa():
