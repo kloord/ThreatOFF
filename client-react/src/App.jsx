@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import FileUpload from "./FIleUpload.jsx";
 import VistaPrevia from "./VistaPrevia.jsx";
 import threatOffLogo from './assets/Fotos/ThreatOFF.png';
@@ -31,9 +31,11 @@ function App() {
             textAlign: 'center',
           }}
         >
-          <span>ThreatOFF</span>
-          <span style={{fontSize: '1.2rem', margin: '2px 0'}}>X</span>
-          <span>AFP Capital</span>
+          <Link to="/" style={{ textDecoration: 'none', color: '#fff' }}>
+            <span style={{fontSize: '1.2rem', margin: '2px 0', display: 'block'}}>ThreatOFF</span>
+            <span style={{fontSize: '0.5rem', margin: '2px 0', display: 'block'}}>X</span>
+            <span style={{fontSize: '1rem', margin: '2px 0', display: 'block'}}>AFP Capital</span>
+          </Link>
         </div>
       </nav>
       {/* Contenido principal con rutas */}
@@ -64,8 +66,8 @@ function App() {
         }}
       >
         <div
-          className="d-flex justify-content-start align-items-center w-100"
-          style={{ gap: '60px', marginLeft: '490px' }}
+          className="d-flex justify-content-center align-items-center w-100"
+          style={{ gap: '60px' }}
         >
           <div>
             <a

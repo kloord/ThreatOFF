@@ -90,8 +90,8 @@ export default function FileUpload() {
             <button
               type="submit"
               disabled={loading}
-              className={`btn w-100 fw-semibold d-flex align-items-center justify-content-center gap-2 ${loading ? 'disabled' : ''}`}
-              style={{ backgroundColor: '#000', color: '#fff' }}
+              className={`btn w-100 fw-semibold d-flex align-items-center justify-content-center gap-2 upload-anim-btn ${loading ? 'disabled' : ''}`}
+              style={{ backgroundColor: '#393E46', color: '#fff' }}
             >
               {loading && <Loader2 className="spinner-border spinner-border-sm me-2" style={{width: '20px', height: '20px'}} />}
               {loading ? "Cargando..." : "Subir CSV"}
@@ -174,6 +174,19 @@ export default function FileUpload() {
           </div>
         </div>
       </div>
+
+      {/* Animación CSS para el botón de subir */}
+      <style>
+        {`
+          .upload-anim-btn:hover {
+            background-color: #222831;
+            color: #fff;
+            transform: scale(1.08);
+            box-shadow: 0 6px 24px rgba(57,62,70,0.18);
+            transition: all 0.2s;
+          }
+        `}
+      </style>
     </div>
   );
 }

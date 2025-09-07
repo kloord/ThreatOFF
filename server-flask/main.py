@@ -141,19 +141,20 @@ def vista_previa():
     })
 
 @app.route('/vista-previa/download', methods=['GET'])
-def descargar_csv():
+def descargar_excel():
     global processed_df
     if processed_df is None:
         return jsonify({'status': 'error', 'message': 'No hay archivo procesado para descargar'}), 400
 
-    output = io.StringIO()
-    processed_df.to_csv(output, index=False)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        processed_df.to_excel(writer, index=False, sheet_name='Procesado')
     output.seek(0)
     return send_file(
-        io.BytesIO(output.getvalue().encode()),
-        mimetype='text/csv',
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         as_attachment=True,
-        download_name='procesado.csv'
+        download_name='procesado.xlsx'
     )
 
 @app.route('/')
