@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Home } from "lucide-react"; // Si tienes lucide-react instalado
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export default function VistaPrevia() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -13,7 +15,7 @@ export default function VistaPrevia() {
   const [duplicadosMsg, setDuplicadosMsg] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5000/vista-previa")
+    fetch(`${API_URL}/vista-previa`)
       .then((res) => res.json())
       .then((data) => {
         if (data.status === "success") {
@@ -75,7 +77,7 @@ export default function VistaPrevia() {
         {/* Centra el botón de descarga */}
         <div className="d-flex justify-content-center mb-1">
           <a
-            href="http://localhost:5000/vista-previa/download"
+            href={`${API_URL}/vista-previa/download`}
             className="btn download-anim-btn"
             target="_blank"
             rel="noopener noreferrer"
@@ -92,7 +94,7 @@ export default function VistaPrevia() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               textAlign: "center",
               overflow: "hidden",
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
             }}
           >
             Descargar Archivo Procesado
@@ -108,7 +110,7 @@ export default function VistaPrevia() {
               border: "none",
               boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               fontSize: "0.97rem",
-              padding: "6px 10px"
+              padding: "6px 10px",
             }}
           >
             {duplicadosMsg}

@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, Loader2, CheckCircle, XCircle } from "lucide-react";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './FIleUpload.css';
+import './FileUpload.css';
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function FileUpload() {
   const [message, setMessage] = useState("");
@@ -41,7 +43,7 @@ export default function FileUpload() {
       formData.append(key, value);
     });
     try {
-      const res = await fetch("http://localhost:5000/upload", {
+      const res = await fetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
       });
