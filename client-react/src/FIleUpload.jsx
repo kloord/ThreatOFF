@@ -20,11 +20,18 @@ export default function FileUpload() {
     cruzarInformacion: false,
   });
 
+  const [showSecondForm, setShowSecondForm] = useState(false);
+  const [secondFile, setSecondFile] = useState(null);
+
   const handleFilterChange = (e) => {
     setFilters({
       ...filters,
       [e.target.name]: e.target.checked,
     });
+  };
+
+  const handleSecondFileChange = (e) => {
+    setSecondFile(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -67,28 +74,30 @@ export default function FileUpload() {
 
   return (
     <div className="fileupload-center bg-light" style={{ minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+      {/* Contenedor principal en columna */}
       <div className="d-flex flex-column align-items-center justify-content-center w-100">
-        <div className="card shadow-lg rounded-4 p-4 w-100" style={{maxWidth: '480px'}}>
-          {/* Header */}
-          <div className="text-center mb-4">
-            <div className="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: '64px', height: '64px'}}>
-              <Upload style={{ width: '40px', height: '40px', color: '#000' }} />
+        {/* Formularios lado a lado */}
+        <div className="d-flex flex-row align-items-start justify-content-center w-100 gap-4">
+          {/* Formulario principal */}
+          <form className="card shadow-lg rounded-4 p-4 w-100 mb-4" style={{ maxWidth: "400px" }} onSubmit={handleSubmit}>
+            <div className="d-flex flex-column align-items-center mb-3">
+              <Upload size={32} color="#393E46" className="mb-2" />
+              <h5 className="fw-bold mb-0 text-center" style={{ color: '#000' }}>Subir archivo principal</h5>
             </div>
-            <h1 className="h3 fw-bold mb-2" style={{ color: '#000' }}>Sube tu archivo CSV</h1>
-          </div>
-
-          {/* Formulario */}
-          <form onSubmit={handleSubmit} className="d-flex flex-column gap-3 align-items-center w-100">
-            <input
-              type="file"
-              name="file"
-              accept=".csv"
-              className="form-control mb-1"
-              style={{maxWidth: '300px'}}
-            />
-            <small className="text-muted mb-2" style={{marginTop: '-8px'}}>
-              *Solo en formato CSV estandarizado por Deloitte
-            </small>
+            <div className="mb-3">
+              <input
+                type="file"
+                name="file"
+                accept=".csv"
+                className="form-control"
+                onChange={(e) => setSecondFile(e.target.files[0])}
+                style={{maxWidth: '300px'}}
+              />
+              <small className="text-muted" style={{marginTop: '-8px'}}>
+                *Solo en formato CSV estandarizado por Deloitte
+              </small>
+            </div>
+            {/* Botón de subir */}
             <button
               type="submit"
               disabled={loading}
@@ -98,80 +107,102 @@ export default function FileUpload() {
               {loading && <Loader2 className="spinner-border spinner-border-sm me-2" style={{width: '20px', height: '20px'}} />}
               {loading ? "Cargando..." : "Subir CSV"}
             </button>
+            {/* Mensaje de confirmación o error debajo del botón */}
+            {message && (
+              <div
+                className={`alert mt-3 text-center ${status === "success" ? "alert-success" : "alert-danger"}`}
+                role="alert"
+                style={{
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  opacity: 0.95,
+                }}
+              >
+                {status === "success" && <CheckCircle size={20} className="me-2" />}
+                {status === "error" && <XCircle size={20} className="me-2" />}
+                {message}
+              </div>
+            )}
           </form>
 
-          {/* Mensaje */}
-          {message && (
-            <div className={`mt-4 alert d-flex align-items-center justify-content-center gap-2 w-100 ${status === 'success' ? 'alert-success' : 'alert-danger'}`} role="alert">
-              {status === "success" ? (
-                <CheckCircle className="me-2" style={{width: '20px', height: '20px'}} />
-              ) : (
-                <XCircle className="me-2" style={{width: '20px', height: '20px'}} />
-              )}
-              <span style={{whiteSpace: 'pre-line'}}>{message}</span>
-            </div>
+          {/* Formulario secundario, igual al principal */}
+          {filters.cruzarInformacion && (
+            <form className="card shadow-lg rounded-4 p-4 w-100 mb-4" style={{ maxWidth: "400px" }}>
+              <h5 className="fw-bold mb-3" style={{ color: '#000' }}>Subir segundo archivo</h5>
+              <div className="mb-3">
+                <input
+                  type="file"
+                  className="form-control"
+                  onChange={handleSecondFileChange}
+                  accept=".csv"
+                />
+              </div>
+            </form>
           )}
         </div>
 
-        {/* Caja de filtros debajo */}
-        <div className="card shadow-lg rounded-4 p-4 w-100 mt-4" style={{maxWidth: '480px'}}>
-          <h5 className="fw-bold mb-3" style={{ color: '#000' }}>Filtros de procesamiento</h5>
-          <div className="mt-1 w-100">
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                name="eliminarPuertos"
-                id="eliminarPuertos"
-                checked={filters.eliminarPuertos}
-                onChange={handleFilterChange}
-                style={{ borderColor: '#000' }}
-              />
-              <label className="form-check-label" htmlFor="eliminarPuertos">
-                Eliminar puertos y rutas
-              </label>
-            </div>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                name="quitarEspacios"
-                id="quitarEspacios"
-                checked={filters.quitarEspacios}
-                onChange={handleFilterChange}
-                style={{ borderColor: '#000' }}
-              />
-              <label className="form-check-label" htmlFor="quitarEspacios">
-                Quitar espacios redundantes (inicio y fin)
-              </label>
-            </div>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                name="eliminarDuplicados"
-                id="eliminarDuplicados"
-                checked={filters.eliminarDuplicados}
-                onChange={handleFilterChange}
-                style={{ borderColor: '#000' }}
-              />
-              <label className="form-check-label" htmlFor="eliminarDuplicados">
-                Eliminar filas duplicadas
-              </label>
-            </div>
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                name="cruzarInformacion"
-                id="cruzarInformacion"
-                checked={filters.cruzarInformacion}
-                onChange={handleFilterChange}
-                style={{ borderColor: '#000' }}
-              />
-              <label className="form-check-label" htmlFor="cruzarInformacion">
-                Cruzar información
-              </label>
+        {/* Filtros centrados debajo de ambos formularios */}
+        <div className="d-flex justify-content-center w-100 mt-4">
+          <div className="card shadow-lg rounded-4 p-4" style={{maxWidth: '480px'}}>
+            <h5 className="fw-bold mb-3" style={{ color: '#000' }}>Filtros de procesamiento</h5>
+            <div className="mt-1 w-100">
+              {/* ...otros filtros... */}
+              <div className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="eliminarPuertos"
+                  id="eliminarPuertos"
+                  checked={filters.eliminarPuertos}
+                  onChange={handleFilterChange}
+                  style={{ borderColor: '#000' }}
+                />
+                <label className="form-check-label" htmlFor="eliminarPuertos">
+                  Eliminar puertos y rutas
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="quitarEspacios"
+                  id="quitarEspacios"
+                  checked={filters.quitarEspacios}
+                  onChange={handleFilterChange}
+                  style={{ borderColor: '#000' }}
+                />
+                <label className="form-check-label" htmlFor="quitarEspacios">
+                  Quitar espacios redundantes (inicio y fin)
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="eliminarDuplicados"
+                  id="eliminarDuplicados"
+                  checked={filters.eliminarDuplicados}
+                  onChange={handleFilterChange}
+                  style={{ borderColor: '#000' }}
+                />
+                <label className="form-check-label" htmlFor="eliminarDuplicados">
+                  Eliminar filas duplicadas
+                </label>
+              </div>
+              <div className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  name="cruzarInformacion"
+                  id="cruzarInformacion"
+                  checked={filters.cruzarInformacion}
+                  onChange={handleFilterChange}
+                  style={{ borderColor: '#000' }}
+                />
+                <label className="form-check-label" htmlFor="cruzarInformacion">
+                  Cruzar información
+                </label>
+              </div>
             </div>
           </div>
         </div>
