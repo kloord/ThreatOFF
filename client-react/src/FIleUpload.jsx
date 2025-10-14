@@ -22,6 +22,7 @@ export default function FileUpload() {
 
   const [showSecondForm, setShowSecondForm] = useState(false);
   const [secondFile, setSecondFile] = useState(null);
+  const [fileA, setFileA] = useState(null); // <-- Estado para archivo principal
 
   const handleFilterChange = (e) => {
     setFilters({
@@ -36,27 +37,32 @@ export default function FileUpload() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const file = e.target.file.files[0];
-    if (!file) {
+    if (!fileA) {
       setMessage("Selecciona un archivo CSV");
       setStatus("error");
       return;
     }
     setLoading(true);
     const formData = new FormData();
-    formData.append("file", file);
-    // Agrega los filtros seleccionados al FormData
+    formData.append("file", fileA); // archivo principal
+    if (filters.cruzarInformacion && secondFile) {
+      formData.append("fileB", secondFile); // archivo secundario
+    }
     Object.entries(filters).forEach(([key, value]) => {
-      formData.append(key, value);
+      formData.append(key, value ? "true" : "false");
     });
+
+    // Mostrar en consola lo que se envía
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
     try {
       const res = await fetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
       });
       const data = await res.json();
-      let extraMsg = "";
-      // Elimina esta parte para que no muestre el mensaje aquí
       setMessage(data.message);
       setStatus(data.status);
       setLoading(false);
@@ -90,7 +96,7 @@ export default function FileUpload() {
                 name="file"
                 accept=".csv"
                 className="form-control"
-                onChange={(e) => setSecondFile(e.target.files[0])}
+                onChange={(e) => setFileA(e.target.files[0])} // <-- Cambiado a setFileA
                 style={{maxWidth: '300px'}}
               />
               <small className="text-muted" style={{marginTop: '-8px'}}>

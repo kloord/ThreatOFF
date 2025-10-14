@@ -53,15 +53,16 @@ duplicados = []
 @app.route('/upload', methods=['POST'])
 def upload_csv():
     global processed_df, duplicados
-    file = request.files.get('file')
-    if not file:
-        return jsonify({'status': 'error', 'message': 'No se envió ningún archivo'}), 400
-
-    # Recibe los filtros del frontend
+    file = request.files.get('file') or request.files.get('fileA')
+    # Elimina todos los prints de depuración
+    cruzar_informacion = request.form.get('cruzarInformacion') == 'true'
+    file_b = request.files.get('fileB')
     eliminar_puertos = request.form.get('eliminarPuertos') == 'true'
     quitar_espacios = request.form.get('quitarEspacios') == 'true'
     eliminar_duplicados = request.form.get('eliminarDuplicados') == 'true'
     cruzar_informacion = request.form.get('cruzarInformacion') == 'true'
+    if not file:
+        return jsonify({'status': 'error', 'message': 'No se envió ningún archivo'}), 400
 
     if not file.filename.endswith('.csv'):
         return jsonify({'status': 'error', 'message': 'El archivo debe ser formato CSV'}), 400
@@ -79,7 +80,6 @@ def upload_csv():
     except Exception:
         return jsonify({'status': 'error', 'message': 'No se pudo leer el archivo CSV'}), 400
 
-    # Normaliza nombres de columnas
     normalized = {col.strip().lower() for col in df.columns}
     required_normalized = {col.strip().lower() for col in REQUIRED_COLUMNS}
     missing = required_normalized - normalized
@@ -89,16 +89,13 @@ def upload_csv():
             'message': f'Faltan columnas requeridas: {", ".join(missing)}. Columnas detectadas: {", ".join(df.columns)}'
         }), 400
 
-    # Limpieza de la columna Resource SOLO si eliminar_puertos está activo
     if eliminar_puertos and 'Resource' in df.columns:
         df['Resource'] = df['Resource'].apply(clean_resource)
 
-    # Quitar espacios redundantes (inicio y fin) en todas las columnas tipo texto SOLO si quitar_espacios está activo
     if quitar_espacios:
         for col in df.select_dtypes(include='object').columns:
             df[col] = df[col].apply(lambda x: str(x).strip())
 
-    # Eliminar filas duplicadas y guardar los números (#) eliminados SOLO si eliminar_duplicados está activo
     duplicados = []
     if eliminar_duplicados:
         if '#' in df.columns:
@@ -108,21 +105,25 @@ def upload_csv():
         else:
             df = df.drop_duplicates()
 
-    # Si cruzar_informacion está activo, aquí podrías agregar la lógica correspondiente
-    # if cruzar_informacion:
-    #     ...tu lógica...
+    # --- Cruce de información ---
+    if cruzar_informacion and file_b:
+        try:
+            df_b = pd.read_csv(file_b)
+            b_col = df_b.columns[0]
+            b_values = set(df_b[b_col].astype(str))
+            def fila_contiene_valor_b(row):
+                return any(str(val) in b_values for val in row)
+            df[b_col] = df.apply(lambda row: "Si" if fila_contiene_valor_b(row) else "No", axis=1)
+        except Exception:
+            return jsonify({'status': 'error', 'message': 'No se pudo procesar el archivo de cruce'}), 400
 
-    # Guarda el DataFrame procesado en memoria
     processed_df = df
 
-    # Respuesta con resumen
     response = {
         'status': 'success',
         'message': 'Archivo procesado correctamente.',
         'duplicados': duplicados
     }
-    # Aquí puedes guardar df en memoria para la vista previa si lo necesitas
-
     return jsonify(response)
 
 @app.route('/vista-previa', methods=['GET'])
