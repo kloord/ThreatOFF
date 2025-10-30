@@ -1,17 +1,23 @@
 /* Estilos personalizados para complementar Bootstrap en FileUpload */
 
 
-body {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
+/* Global resets to improve responsiveness and avoid horizontal overflow */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { width: 100%; overflow-x: hidden; }
+html, body { margin: 0; padding: 0; }
+/* Secciones con fondo blanco para que los componentes destaquen */
+body { background-color: #ffffff; }
 
 .fileupload-center {
   min-height: 100vh;
-  width: 100vw;
+  width: 100%; /* avoid 100vw to prevent horizontal scrollbars */
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
+/* Make media scale within containers */
+img, canvas { max-width: 100%; height: auto; }
 
 .card {
   border-radius: 1.5rem;
@@ -59,4 +65,18 @@ input[type="file"].form-control {
 
 .spinner-border {
   border-width: 2px;
+}
+
+/* Animaciones compartidas para botones (home y descarga) */
+.home-anim-btn:hover {
+  transform: scale(1.15) rotate(-10deg);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  border-color: #0d6efd;
+}
+.download-anim-btn:hover {
+  background-color: #222831;
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 6px 24px rgba(57,62,70,0.18);
+  transition: all 0.2s;
 }

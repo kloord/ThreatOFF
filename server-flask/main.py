@@ -4,6 +4,7 @@ import pandas as pd
 import re
 from urllib.parse import urlparse
 import io
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -75,10 +76,28 @@ def upload_csv():
     if size > MAX_FILE_SIZE:
         return jsonify({'status': 'error', 'message': 'El archivo supera el tamaño máximo permitido (5MB)'}), 400
 
+    # Intentamos leer el CSV con varios settings para manejar ';' y diferentes encodings
     try:
         df = pd.read_csv(file, sep=None, engine='python')
-    except Exception:
-        return jsonify({'status': 'error', 'message': 'No se pudo leer el archivo CSV'}), 400
+    except Exception as e1:
+        # primer fallback: punto y coma, UTF-8
+        try:
+            file.seek(0)
+            df = pd.read_csv(file, sep=';', engine='python', encoding='utf-8')
+        except Exception as e2:
+            # segundo fallback: punto y coma, latin-1
+            try:
+                file.seek(0)
+                df = pd.read_csv(file, sep=';', engine='python', encoding='latin-1')
+            except Exception as e3:
+                # tercer fallback: intentar saltar líneas malformadas
+                try:
+                    file.seek(0)
+                    df = pd.read_csv(file, sep=';', engine='python', encoding='latin-1', on_bad_lines='skip')
+                except Exception as e4:
+                    # devolver detalle de error para depuración en el cliente
+                    detail = str(e4)
+                    return jsonify({'status': 'error', 'message': 'No se pudo leer el archivo CSV', 'detail': detail}), 400
 
     normalized = {col.strip().lower() for col in df.columns}
     required_normalized = {col.strip().lower() for col in REQUIRED_COLUMNS}
@@ -141,6 +160,86 @@ def vista_previa():
         'duplicados': duplicados
     })
 
+
+@app.route('/dashboard-data', methods=['GET'])
+def dashboard_data():
+    """
+    Devuelve conteos agrupados por valor para las columnas 'Resource' y 'Subjet'.
+    Retorna top 10 de cada una.
+    """
+    global processed_df
+    if processed_df is None:
+        return jsonify({'status': 'error', 'message': 'No hay archivo procesado para mostrar'}), 400
+
+    # Normalizamos nombres de columnas por si llegan en diferentes capitalizaciones
+    cols_lower = {c.lower(): c for c in processed_df.columns}
+    resource_col = None
+    subject_col = None
+    for low, orig in cols_lower.items():
+        if low == 'resource':
+            resource_col = orig
+        if low == 'subjet' or low == 'subject':
+            subject_col = orig
+
+    if resource_col is None and subject_col is None:
+        return jsonify({'status': 'error', 'message': 'No se encontraron columnas Resource ni Subjet en el dataset procesado'}), 400
+
+    def top_counts(series, top_n=10):
+        if series is None:
+            return {}
+        s = series.astype(str).str.strip().replace({'': 'Unknown'})
+        counts = s.value_counts().head(top_n)
+        return counts.to_dict()
+
+    resource_counts = top_counts(processed_df[resource_col]) if resource_col else {}
+    subject_counts = top_counts(processed_df[subject_col]) if subject_col else {}
+
+    # priority (Priority column) top counts
+    priority_col = None
+    for low, orig in cols_lower.items():
+        if low == 'priority':
+            priority_col = orig
+
+    priority_counts = top_counts(processed_df[priority_col]) if priority_col else {}
+
+    # puntaje ponderado (Puntaje Ponderado column) - contamos SI/NO
+    puntaje_col = None
+    for low, orig in cols_lower.items():
+        if low == 'puntaje ponderado':
+            puntaje_col = orig
+
+    puntaje_counts = {}
+    if puntaje_col:
+        # normalizamos a minúsculas y reemplazamos 'sí' por 'si'
+        s = processed_df[puntaje_col].astype(str).str.strip().str.lower().replace({'sí': 'si'})
+        counts = s.value_counts()
+        si_count = int(counts.get('si', 0))
+        no_count = int(counts.get('no', 0))
+        puntaje_counts = {'Si': si_count, 'No': no_count}
+
+    # Conteo por mes usando exclusivamente la columna 'Date Found' (formato esperado DD/MM/YYYY)
+    month_counts = {}
+    date_col = cols_lower.get('date found')
+    if date_col:
+        try:
+            # parseamos con dayfirst=True para DD/MM/YYYY y toleramos errores
+            dt = pd.to_datetime(processed_df[date_col], dayfirst=True, errors='coerce')
+            # formateamos como 'Mon YYYY' (ej. 'Jun 2025')
+            months = dt.dt.strftime('%b %Y').fillna('Unknown')
+            counts = months.value_counts().head(5)
+            month_counts = counts.to_dict()
+        except Exception:
+            month_counts = {}
+
+    return jsonify({
+        'status': 'success',
+        'resource_counts': resource_counts,
+        'subject_counts': subject_counts
+        , 'priority_counts': priority_counts,
+        'puntaje_counts': puntaje_counts
+        , 'month_counts': month_counts
+    })
+
 @app.route('/vista-previa/download', methods=['GET'])
 def descargar_excel():
     global processed_df
@@ -151,11 +250,14 @@ def descargar_excel():
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         processed_df.to_excel(writer, index=False, sheet_name='Procesado')
     output.seek(0)
+    # Build dynamic filename: informeThreatOFF_DD_MM_AAAA.xlsx
+    today_str = datetime.now().strftime('%d_%m_%Y')
+    download_filename = f'informeThreatOFF_{today_str}.xlsx'
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         as_attachment=True,
-        download_name='procesado.xlsx'
+        download_name=download_filename
     )
 
 @app.route('/')

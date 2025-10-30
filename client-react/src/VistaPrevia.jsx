@@ -40,19 +40,26 @@ export default function VistaPrevia() {
 
   return (
     <div
-      className="fileupload-center bg-light"
+      className="fileupload-center"
       style={{
-        minHeight: "100vh",
-        width: "100vw",
+        backgroundColor: '#fff',
+        minHeight: "100%",
+        width: "100%",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
+        paddingTop: '100px',
+        paddingBottom: '100px',
+        paddingLeft: '20px',
+        paddingRight: '20px',
+        boxSizing: 'border-box',
+        overflowX: 'hidden'
       }}
     >
       <div
-        className="card shadow-lg rounded-4 p-4 w-100 mb-4"
-        style={{ maxWidth: "900px" }}
+        className="card shadow-lg rounded-4 p-4 mb-4"
+        style={{ maxWidth: "900px", margin: '0 auto' }}
       >
         <div className="d-flex align-items-center justify-content-center mb-2">
           <h2 className="mb-0 text-center" style={{ marginRight: "10px" }}>
@@ -74,8 +81,8 @@ export default function VistaPrevia() {
             <Home size={22} color="black" />
           </button>
         </div>
-        {/* Centra el botón de descarga */}
-        <div className="d-flex justify-content-center mb-1">
+        {/* Centra el botón de descarga y el nuevo botón al Dashboard */}
+        <div className="d-flex justify-content-center mb-1" style={{ gap: '12px' }}>
           <a
             href={`${API_URL}/vista-previa/download`}
             className="btn download-anim-btn"
@@ -99,6 +106,28 @@ export default function VistaPrevia() {
           >
             Descargar Archivo Procesado
           </a>
+
+          {/* Nuevo botón hacia /dashboard */}
+          <button
+            type="button"
+            className="btn download-anim-btn"
+            onClick={() => navigate("/dashboard")}
+            style={{
+              backgroundColor: "#2b6cb0",
+              color: "#fff",
+              fontSize: "0.95rem",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              border: "none",
+              minWidth: "60px",
+              width: "180px",
+              minHeight: "32px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            }}
+            title="Ir al Dashboard"
+          >
+            Ir al Dashboard
+          </button>
         </div>
         {duplicadosMsg && (
           <div
@@ -119,15 +148,16 @@ export default function VistaPrevia() {
       </div>
       <div
         className="w-100 d-flex justify-content-center"
-        style={{ maxWidth: "900px" }}
+        style={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', overflowX: 'auto' }}
       >
         {loading ? (
           <div className="text-center">Cargando vista previa...</div>
         ) : (
-          <table
-            className="table table-bordered table-striped"
-            style={{ margin: "0 auto" }}
-          >
+          <div className="table-responsive" style={{ width: '100%' }}>
+            <table
+              className="table table-bordered table-striped"
+              style={{ margin: 0, width: '100%' }}
+            >
             <thead>
               <tr>
                 {columns.map((col) => (
@@ -135,16 +165,17 @@ export default function VistaPrevia() {
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {preview.map((row, idx) => (
-                <tr key={idx}>
-                  {columns.map((col) => (
-                    <td key={col}>{row[col]}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              <tbody>
+                {preview.map((row, idx) => (
+                  <tr key={idx}>
+                    {columns.map((col) => (
+                      <td key={col}>{row[col]}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
       {/* Animación CSS para el botón */}

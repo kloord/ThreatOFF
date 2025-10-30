@@ -79,13 +79,13 @@ export default function FileUpload() {
   };
 
   return (
-    <div className="fileupload-center bg-light" style={{ minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+  <div className="fileupload-center" style={{ backgroundColor: '#fff', height: '100%', overflowY: 'auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
       {/* Contenedor principal en columna */}
-      <div className="d-flex flex-column align-items-center justify-content-center w-100">
+  <div className="d-flex flex-column align-items-center justify-content-center" style={{ width: '100%' }}>
         {/* Formularios lado a lado */}
         <div className="d-flex flex-row align-items-start justify-content-center w-100 gap-4">
           {/* Formulario principal */}
-          <form className="card shadow-lg rounded-4 p-4 w-100 mb-4" style={{ maxWidth: "400px" }} onSubmit={handleSubmit}>
+          <form className="card shadow-lg rounded-4 p-4 mb-4" style={{ maxWidth: "400px", margin: '0 auto' }} onSubmit={handleSubmit}>
             <div className="d-flex flex-column align-items-center mb-3">
               <Upload size={32} color="#393E46" className="mb-2" />
               <h5 className="fw-bold mb-0 text-center" style={{ color: '#000' }}>Subir archivo principal</h5>
@@ -132,8 +132,8 @@ export default function FileUpload() {
           </form>
 
           {/* Formulario secundario, igual al principal */}
-          {filters.cruzarInformacion && (
-            <form className="card shadow-lg rounded-4 p-4 w-100 mb-4" style={{ maxWidth: "400px" }}>
+            {filters.cruzarInformacion && (
+            <form className="card shadow-lg rounded-4 p-4 mb-4" style={{ maxWidth: "400px", margin: '0 auto' }}>
               <h5 className="fw-bold mb-3" style={{ color: '#000' }}>Subir segundo archivo</h5>
               <div className="mb-3">
                 <input
