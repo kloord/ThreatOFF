@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Home } from "lucide-react";
+import { Home, ArrowLeft } from "lucide-react";
 import { Pie, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -12,7 +12,7 @@ import {
   BarElement,
 } from "chart.js";
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './FileUpload.css';
+import './theme.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -46,7 +46,6 @@ export default function Dashboard() {
           const sc = data.subject_counts || {};
           const pc = data.priority_counts || {};
 
-          // Prepare top 10 for pie slices and remember top 3 for the legend
           const rcEntries = Object.entries(rc || {}).map(([k, v]) => [k, Number(v)]);
           rcEntries.sort((a, b) => b[1] - a[1]);
           const rcTop10 = rcEntries.slice(0, 10);
@@ -74,13 +73,11 @@ export default function Dashboard() {
           });
           setSubjectTop3(scTop3.map(s => s[0]));
 
-          // priority bar
-          // Normalize priority counts and force desired order
           const desiredOrder = ['Critical', 'High', 'Medium', 'Low', 'Informational'];
-          // build a case-insensitive map from api data
+
           const pcMap = {};
           Object.entries(pc).forEach(([k, v]) => {
-            pcMap[String(k).trim().toLowerCase()] = Number(v) || 0;
+            pcMap[String(k).trim().toLowerCase()] = Number(v) | 0;
           });
           const priorityCountsOrdered = desiredOrder.map(label => pcMap[label.toLowerCase()] || 0);
           setPriorityData({
@@ -120,135 +117,223 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="fileupload-center" style={{ backgroundColor: '#fff', minHeight: "100%", paddingTop: '100px', paddingBottom: '100px', paddingLeft: '20px', paddingRight: '20px', boxSizing: 'border-box', overflowX: 'hidden' }}>
-        <div className="card shadow-lg rounded-4 p-4" style={{ width: "100%", maxWidth: "1100px", boxSizing: "border-box", margin: '0 auto' }}>
-          Cargando datos del dashboard...
+      <div className="page-wrapper">
+        <div className="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div className="spinner"></div>
+            <p style={{ marginTop: '1rem', color: 'var(--text-muted)' }}>Cargando datos del dashboard...</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fileupload-center" style={{ backgroundColor: '#fff', minHeight: "100%", paddingTop: '100px', paddingBottom: '100px', paddingLeft: '20px', paddingRight: '20px', boxSizing: 'border-box', overflowX: 'hidden' }}>
-      <div className="card shadow-lg rounded-4 p-4" style={{ width: "100%", maxWidth: "1100px", boxSizing: "border-box", margin: '0 auto' }}>
-        <div className="d-flex align-items-center justify-content-between mb-2">
+    <div className="page-wrapper">
+      <div className="page-content">
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Header Section */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-lg)' }}>
           <div>
-            <h2 className="mb-0">Dashboard de Visualización</h2>
-            <p className="mb-0 text-muted">Distribución por Resource y por Subjet (top valores).</p>
+            <h1 style={{ marginBottom: 'var(--spacing-xs)', color: 'var(--text-primary)' }}>Dashboard de Vulnerabilidades</h1>
+            <p style={{ marginBottom: 0, color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>Análisis visual de distribución por Resource, Subject, Prioridades y Puntaje</p>
           </div>
-          <div className="d-flex align-items-center" style={{ gap: 10 }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
             <button
-              className="btn download-anim-btn"
+              className="btn-secondary"
               onClick={() => navigate('/vista-previa')}
-              style={{
-                backgroundColor: "#393E46",
-                color: "#fff",
-                fontSize: "0.95rem",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "none",
-                minWidth: "60px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
             >
+              <ArrowLeft size={18} />
               Volver
             </button>
-
             <button
-              className="btn btn-outline-primary d-flex align-items-center justify-content-center home-anim-btn"
-              style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                backgroundColor: "white",
-                borderColor: "black",
-                transition: "transform 0.2s, box-shadow 0.2s",
-              }}
+              className="btn-icon"
               onClick={() => navigate('/')}
               title="Ir al inicio"
             >
-              <Home size={22} color="black" />
+              <Home size={20} />
             </button>
           </div>
         </div>
 
-        <div className="d-flex flex-wrap justify-content-center gap-4" style={{ marginTop: 24, width: '100%' }}>
-          <div style={{ width: "100%", minWidth: 320, maxWidth: 420, boxSizing: 'border-box' }}>
-            <h5 className="text-center">Resource (top)</h5>
-            {resourceData && (
-              <Pie
-                data={resourceData}
-                options={{
-                  plugins: {
-                    legend: {
-                      labels: {
-                        // show only top 3 in legend
-                        filter: function (legendItem, chartData) {
-                          return resourceTop3.includes(legendItem.text);
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
+          {/* Resource Grafico de torta */}
+          <div className="card">
+            <div className="card-inner">
+            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Resource (top 10)</h3>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades por recurso</p>
+            </div>
+            <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {resourceData && (
+                <div style={{ width: '100%', height: '100%' }}>
+                  <Pie
+                    data={resourceData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            boxWidth: 12,
+                            padding: 12,
+                            font: { size: 12 },
+                            color: 'var(--text-primary)',
+                            filter: function (legendItem) {
+                              return resourceTop3.includes(legendItem.text);
+                            }
+                          }
                         }
                       }
-                    }
-                  }
-                }}
-              />
-            )}
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            </div>
           </div>
 
-          <div style={{ width: "100%", minWidth: 320, maxWidth: 420, boxSizing: 'border-box' }}>
-            <h5 className="text-center">Subjet (top)</h5>
-            {subjectData && (
-              <Pie
-                data={subjectData}
-                options={{
-                  plugins: {
-                    legend: {
-                      labels: {
-                        filter: function (legendItem, chartData) {
-                          return subjectTop3.includes(legendItem.text);
+          {/* Subject grafico de torta */}
+          <div className="card">
+            <div className="card-inner">
+            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Subject (top 10)</h3>
+              <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades por asunto</p>
+            </div>
+            <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {subjectData && (
+                <div style={{ width: '100%', height: '100%' }}>
+                  <Pie
+                    data={subjectData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            boxWidth: 12,
+                            padding: 12,
+                            font: { size: 12 },
+                            color: 'var(--text-primary)',
+                            filter: function (legendItem) {
+                              return subjectTop3.includes(legendItem.text);
+                            }
+                          }
                         }
                       }
-                    }
-                  }
-                }}
-              />
-            )}
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            </div>
           </div>
         </div>
-        {/* Gráfico de barras de prioridades */}
-        <div style={{ marginTop: 24, width: '100%', boxSizing: 'border-box' }}>
-          <div style={{ width: "100%", boxSizing: "border-box", margin: '0 auto' }}>
-            <h5 className="text-center">Prioridades (conteo)</h5>
+
+        {/* Priority grafico */}
+  <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <div className="card-inner">
+          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Prioridades (conteo)</h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades por nivel de prioridad</p>
+          </div>
+          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {priorityData && (
-              <Bar
-                data={priorityData}
-                options={{ plugins: { legend: { display: false } } }}
-              />
+              <div style={{ width: '100%', height: '100%' }}>
+                <Bar
+                  data={priorityData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      y: {
+                        ticks: { color: 'var(--text-muted)', font: { size: 12 } },
+                        grid: { color: 'var(--border-color)' }
+                      },
+                      x: {
+                        ticks: { color: 'var(--text-muted)', font: { size: 12 } },
+                        grid: { display: false }
+                      }
+                    }
+                  }}
+                />
+              </div>
             )}
           </div>
+          </div>
         </div>
-        {/* Gráfico de barras de Puntaje Ponderado (Si / No) */}
-        <div style={{ marginTop: 24, width: '100%', boxSizing: 'border-box' }}>
-          <div style={{ width: "100%", boxSizing: "border-box", margin: '0 auto' }}>
-            <h5 className="text-center">Puntaje Ponderado (Si / No)</h5>
+
+        {/* Puntaje Ponderado grafico */}
+  <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <div className="card-inner">
+          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Puntaje Ponderado (Si / No)</h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades según estado de puntaje</p>
+          </div>
+          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {puntajeData && (
-              <Bar
-                data={puntajeData}
-                options={{ plugins: { legend: { display: false } } }}
-              />
+              <div style={{ width: '100%', height: '100%' }}>
+                <Bar
+                  data={puntajeData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      y: {
+                        ticks: { color: 'var(--text-muted)', font: { size: 12 } },
+                        grid: { color: 'var(--border-color)' }
+                      },
+                      x: {
+                        ticks: { color: 'var(--text-muted)', font: { size: 12 } },
+                        grid: { display: false }
+                      }
+                    }
+                  }}
+                />
+              </div>
             )}
+          </div>
           </div>
         </div>
-        {/* Gráfico de barras Meses (top 5) */}
-        <div style={{ marginTop: 24, width: '100%', boxSizing: 'border-box' }}>
-          <div style={{ width: "100%", boxSizing: "border-box", margin: '0 auto' }}>
-            <h5 className="text-center">Meses con más vulnerabilidades (top 5)</h5>
+
+        {/* Meses con mas vuln */}
+  <div className="card">
+          <div className="card-inner">
+          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Meses con más vulnerabilidades (top 5)</h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Tendencia temporal de vulnerabilidades</p>
+          </div>
+          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {monthData && (
-              <Bar
-                data={monthData}
-                options={{ plugins: { legend: { display: false } } }}
-              />
+              <div style={{ width: '100%', height: '100%' }}>
+                <Bar
+                  data={monthData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      y: {
+                        ticks: { color: 'var(--text-muted)', font: { size: 12 } },
+                        grid: { color: 'var(--border-color)' }
+                      },
+                      x: {
+                        ticks: { color: 'var(--text-muted)', font: { size: 12 } },
+                        grid: { display: false }
+                      }
+                    }
+                  }}
+                />
+              </div>
             )}
           </div>
+          </div>
+        </div>
         </div>
       </div>
     </div>

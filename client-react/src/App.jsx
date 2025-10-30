@@ -1,142 +1,60 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import FileUpload from "./FIleUpload.jsx";
 import VistaPrevia from "./VistaPrevia.jsx";
-import Dashboard from "./Dashboard.jsx"; // <-- nuevo import
+import Dashboard from "./Dashboard.jsx";
+import './theme.css';
 
 function App() {
-  const [contentHeight, setContentHeight] = useState('calc(100vh - 110px)');
-
-  useEffect(() => {
-    function update() {
-      const nav = document.querySelector('nav');
-      const footer = document.querySelector('footer');
-      const navH = nav ? nav.offsetHeight : 0;
-      const footH = footer ? footer.offsetHeight : 0;
-      setContentHeight(`calc(100vh - ${navH}px - ${footH}px)`);
-    }
-    // run on mount and when fonts/images load
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
 
   return (
     <Router>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "flex-start",
-          width: "100%",
-        }}
-      >
-        <div style={{ width: "100%", maxWidth: 1100, margin: "0 auto" }}>
-          <nav
-            className="navbar fixed-top bg-dark text-light"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%",
-              zIndex: 1000,
-              backgroundColor: "#000",
-              color: "#fff",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px" }}>
-              <Link to="/" style={{ textDecoration: "none", color: "#fff", fontWeight: "bold", fontSize: "1.1rem" }}>
-                ThreatOFF
-                <span style={{ display: "block", fontSize: "0.6rem" }}>AFP Capital</span>
-              </Link>
-            </div>
-          </nav>
+      <div style={{ display: "flex", flexDirection: "column", width: "100%", minHeight: "100vh" }}>
+        <nav className="navbar-custom">
+          <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', padding: '0 var(--spacing-lg)', width: '100%', gap: 'var(--spacing-xl)' }}>
+            <Link to="/" className="navbar-brand">
+              ThreatOFF
+              <span style={{ fontSize: "0.6rem", display: "block", opacity: 0.8 }}>AFP Capital</span>
+            </Link>
+          </div>
+        </nav>
 
-          {/* Contenido principal con rutas */}
-          {/* main content area sized to viewport minus navbar and footer */}
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <div style={{ height: contentHeight, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', width: '100%' }}>
-                  <FileUpload />
-                </div>
-              }
-            />
-            <Route
-              path="/vista-previa"
-              element={
-                <div style={{ minHeight: contentHeight, width: '100%', display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', overflowY: 'auto' }}>
-                  <VistaPrevia />
-                </div>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                 <div style={{ minHeight: contentHeight, width: '100%', display: 'flex', alignItems: 'stretch', justifyContent: 'flex-start', overflowY: 'auto' }}>
-                  <Dashboard />
-                </div>
-              }
-            />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<FileUpload />} />
+          <Route path="/vista-previa" element={<VistaPrevia />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
 
-        {/* Footer fijo centrado */}
-        <footer
-          className="bg-black text-light px-5 py-3"
-          style={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            width: "100%",
-            zIndex: 1000,
-            backgroundColor: "#222",
-            color: "#fff",
-          }}
-        >
-          <div
-            className="d-flex justify-content-center align-items-center w-100"
-            style={{ gap: "60px" }}
-          >
-            <div>
+          {/* Footer fijo */}
+          <footer className="footer-custom">
+            <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--spacing-3xl)', flexWrap: 'wrap' }}>
               <a
                 href="https://nvd.nist.gov/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-light text-decoration-none fw-semibold"
-                style={{ display: "inline-block", textAlign: "center" }}
+                className="footer-link"
               >
-                NVD<br />
-                National Vulnerability Database
+                NVD <br /> National Vulnerability Database
               </a>
-            </div>
-            <div>
               <a
                 href="https://cve.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-light text-decoration-none fw-semibold"
-                style={{ display: "inline-block", textAlign: "center" }}
+                className="footer-link"
               >
-                CVE<br />
-                Common Vulnerabilities and Exposures
+                CVE <br /> Common Vulnerabilities and Exposures
               </a>
-            </div>
-            <div>
               <a
                 href="https://attack.mitre.org/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-light text-decoration-none fw-semibold"
-                style={{ display: "inline-block", textAlign: "center" }}
+                className="footer-link"
               >
-                Mitre ATT&CK<br />
+                Mitre ATT&CK
               </a>
             </div>
-          </div>
-        </footer>
+          </footer>
+
       </div>
     </Router>
   );
