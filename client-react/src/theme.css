@@ -645,3 +645,160 @@ button:disabled, .btn:disabled {
   text-align: center;
   margin-bottom: var(--spacing-md);
 }
+
+/* ============================================
+   7. GLASS + MICRO-ANIMATIONS (additions)
+   ============================================ */
+:root {
+  --brand-gradient: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #34d399 100%);
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-dark: rgba(15, 23, 42, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-blur: 14px;
+  --glass-shadow: 0 20px 40px rgba(2, 6, 23, 0.12);
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Glassy surfaces for navbar/footer */
+.glass-nav {
+  background: var(--glass-bg-dark) !important;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-lg);
+}
+
+.glass-footer {
+  background: var(--glass-bg-dark) !important;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Glassy cards */
+.card.glassy, .themed-card.glassy {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+.card.glassy:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 50px rgba(2, 6, 23, 0.16);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Animated gradient primary button */
+.dashboard-modern .btn.btn-primary, .dashboard-modern button.btn-primary {
+  background-image: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #10b981 100%);
+  background-size: 200% auto;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
+  border: 0;
+}
+.dashboard-modern .btn.btn-primary:hover, .dashboard-modern button.btn-primary:hover {
+  background-position: right center;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(59, 130, 246, 0.35);
+}
+.dashboard-modern .btn-glow {
+  box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.0);
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
+}
+.dashboard-modern .btn-glow:hover {
+  box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.12);
+}
+
+/* Secondary glassy button */
+.dashboard-modern .btn.btn-secondary, .dashboard-modern button.btn-secondary {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--glass-border);
+  color: var(--color-text-primary);
+  backdrop-filter: blur(10px);
+}
+.dashboard-modern .btn.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+/* Icon button – glassy */
+.dashboard-modern .btn-icon {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+}
+.dashboard-modern .btn-icon:hover {
+  transform: scale(1.08);
+}
+
+/* Micro interaction utilities */
+.hover-lift { transition: transform var(--transition-base), box-shadow var(--transition-base); }
+.hover-lift:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
+
+.hover-glow { transition: box-shadow var(--transition-base); }
+.hover-glow:hover { box-shadow: 0 0 0 6px rgba(59,130,246,.12); }
+
+.tilt-hover { transform-style: preserve-3d; transition: transform 300ms ease; }
+.tilt-hover:hover { transform: perspective(800px) rotateX(4deg) rotateY(-4deg) translateY(-4px); }
+
+/* Skeleton shimmer */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 37%, #e5e7eb 63%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.4s ease infinite;
+  border-radius: var(--radius-md);
+}
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* Stats grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-lg);
+}
+.stat-card {
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-2xl);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.stat-title { color: var(--color-text-secondary); font-size: 0.9rem; }
+.stat-value { font-size: 1.8rem; font-weight: 700; color: var(--color-text-primary); }
+.dot { width: 10px; height: 10px; border-radius: 50%; margin-right: .5rem; display: inline-block; }
+.dot-critical { background: #ef4444; box-shadow: 0 0 12px rgba(239,68,68,.6); }
+.dot-high { background: #f59e0b; box-shadow: 0 0 12px rgba(245,158,11,.6); }
+.dot-medium { background: #3b82f6; box-shadow: 0 0 12px rgba(59,130,246,.6); }
+.dot-low { background: #10b981; box-shadow: 0 0 12px rgba(16,185,129,.6); }
+.dot-info { background: #64748b; box-shadow: 0 0 12px rgba(100,116,139,.6); }
+
+/* Chart container – glass */
+.glass-chart {
+  border-radius: var(--radius-2xl);
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--glass-shadow);
+  padding: var(--spacing-md);
+}
+
+/* Header divider tweak */
+.section-header {
+  border-bottom: 1px dashed rgba(15, 23, 42, .12);
+}

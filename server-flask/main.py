@@ -202,6 +202,22 @@ def dashboard_data():
 
     priority_counts = top_counts(processed_df[priority_col]) if priority_col else {}
 
+    # Tipo de Asset counts
+    asset_type_col = None
+    for low, orig in cols_lower.items():
+        if low == 'tipo de asset':
+            asset_type_col = orig
+            break
+    asset_type_counts = top_counts(processed_df[asset_type_col]) if asset_type_col else {}
+
+    # status (Status column) top counts
+    status_col = None
+    for low, orig in cols_lower.items():
+        if low == 'status':
+            status_col = orig
+
+    status_counts = top_counts(processed_df[status_col]) if status_col else {}
+
     # puntaje ponderado (Puntaje Ponderado column) - contamos SI/NO
     puntaje_col = None
     for low, orig in cols_lower.items():
@@ -236,6 +252,8 @@ def dashboard_data():
         'resource_counts': resource_counts,
         'subject_counts': subject_counts
         , 'priority_counts': priority_counts,
+        'status_counts': status_counts,
+        'asset_type_counts': asset_type_counts,
         'puntaje_counts': puntaje_counts
         , 'month_counts': month_counts
     })

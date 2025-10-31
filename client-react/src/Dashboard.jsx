@@ -35,6 +35,9 @@ export default function Dashboard() {
   const [monthData, setMonthData] = useState(null);
   const [subjectTop3, setSubjectTop3] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, critical: 0, high: 0, medium: 0, low: 0, info: 0 });
+  const [statusData, setStatusData] = useState(null);
+  const [assetTypeData, setAssetTypeData] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,7 +80,7 @@ export default function Dashboard() {
 
           const pcMap = {};
           Object.entries(pc).forEach(([k, v]) => {
-            pcMap[String(k).trim().toLowerCase()] = Number(v) | 0;
+            pcMap[String(k).trim().toLowerCase()] = Number(v) || 0;
           });
           const priorityCountsOrdered = desiredOrder.map(label => pcMap[label.toLowerCase()] || 0);
           setPriorityData({
@@ -87,6 +90,16 @@ export default function Dashboard() {
               data: priorityCountsOrdered,
               backgroundColor: genColors(desiredOrder.length),
             }],
+          });
+
+          const total = Object.values(pcMap).reduce((a, b) => a + (Number(b) || 0), 0);
+          setStats({
+            total,
+            critical: pcMap['critical'] || 0,
+            high: pcMap['high'] || 0,
+            medium: pcMap['medium'] || 0,
+            low: pcMap['low'] || 0,
+            info: pcMap['informational'] || pcMap['info'] || 0,
           });
 
           // puntaje ponderado (Si / No)
@@ -110,6 +123,24 @@ export default function Dashboard() {
               backgroundColor: genColors(Object.keys(mc).length || 5),
             }],
           });
+
+          // Status summary counts
+          const st = data.status_counts || {};
+          const stEntries = Object.entries(st).map(([k, v]) => [k, Number(v)]);
+          stEntries.sort((a, b) => b[1] - a[1]);
+          setStatusData({
+            labels: stEntries.map(e => e[0]),
+            datasets: [{ label: 'Cantidad', data: stEntries.map(e => e[1]), backgroundColor: genColors(stEntries.length || 2) }],
+          });
+
+          // Tipo de Asset (donut)
+          const at = data.asset_type_counts || {};
+          const atEntries = Object.entries(at).map(([k, v]) => [k, Number(v)]);
+          atEntries.sort((a, b) => b[1] - a[1]);
+          setAssetTypeData({
+            labels: atEntries.map(e => e[0]),
+            datasets: [{ data: atEntries.map(e => e[1]), backgroundColor: genColors(atEntries.length || 2) }],
+          });
         }
       })
       .finally(() => setLoading(false));
@@ -131,16 +162,16 @@ export default function Dashboard() {
   return (
     <div className="page-wrapper">
       <div className="page-content">
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="dashboard-modern" style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header Section */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xl)', borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-lg)' }}>
+        <div className="section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-lg)' }}>
           <div>
-            <h1 style={{ marginBottom: 'var(--spacing-xs)', color: 'var(--text-primary)' }}>Dashboard de Vulnerabilidades</h1>
-            <p style={{ marginBottom: 0, color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>Análisis visual de distribución por Resource, Subject, Prioridades y Puntaje</p>
+            <h1 style={{ marginBottom: 'var(--spacing-xs)', color: '#000' }}>Dashboard de Vulnerabilidades</h1>
+            <p style={{ marginBottom: 0, color: 'var(--color-text-secondary)' }}></p>
           </div>
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
             <button
-              className="btn-secondary"
+              className="btn btn-secondary btn-glow hover-lift"
               onClick={() => navigate('/vista-previa')}
               style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
             >
@@ -148,7 +179,7 @@ export default function Dashboard() {
               Volver
             </button>
             <button
-              className="btn-icon"
+              className="btn-icon hover-lift"
               onClick={() => navigate('/')}
               title="Ir al inicio"
             >
@@ -157,15 +188,49 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* KPI Stats */}
+        <div className="stats-grid animate-slide-in" style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <div className="stat-card glassy hover-lift card">
+            <div>
+              <div className="stat-title"><span className="dot dot-critical"></span>Críticas</div>
+              <div className="stat-value">{stats.critical}</div>
+            </div>
+          </div>
+          <div className="stat-card glassy hover-lift card">
+            <div>
+              <div className="stat-title"><span className="dot dot-high"></span>Altas</div>
+              <div className="stat-value">{stats.high}</div>
+            </div>
+          </div>
+          <div className="stat-card glassy hover-lift card">
+            <div>
+              <div className="stat-title"><span className="dot dot-medium"></span>Medias</div>
+              <div className="stat-value">{stats.medium}</div>
+            </div>
+          </div>
+          <div className="stat-card glassy hover-lift card">
+            <div>
+              <div className="stat-title"><span className="dot dot-low"></span>Bajas</div>
+              <div className="stat-value">{stats.low}</div>
+            </div>
+          </div>
+          <div className="stat-card glassy hover-lift card">
+            <div>
+              <div className="stat-title"><span className="dot dot-info"></span>Informativas</div>
+              <div className="stat-value">{stats.info}</div>
+            </div>
+          </div>
+        </div>
+
   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
           {/* Resource Grafico de torta */}
-          <div className="card">
+          <div className="card glassy animate-slide-in">
             <div className="card-inner">
-            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-              <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Resource (top 10)</h3>
+            <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Resource </h3>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades por recurso</p>
             </div>
-            <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="glass-chart" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {resourceData && (
                 <div style={{ width: '100%', height: '100%' }}>
                   <Pie
@@ -196,13 +261,13 @@ export default function Dashboard() {
           </div>
 
           {/* Subject grafico de torta */}
-          <div className="card">
+          <div className="card glassy animate-slide-in">
             <div className="card-inner">
-            <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-              <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Subject (top 10)</h3>
+            <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+              <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Subject</h3>
               <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades por asunto</p>
             </div>
-            <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="glass-chart" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {subjectData && (
                 <div style={{ width: '100%', height: '100%' }}>
                   <Pie
@@ -231,16 +296,46 @@ export default function Dashboard() {
             </div>
             </div>
           </div>
+          {/* Tipo de Asset (donut) */}
+          <div className="card glassy animate-slide-in">
+            <div className="card-inner">
+              <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+                <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Tipo de Asset</h3>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución por tipo de activo</p>
+              </div>
+              <div className="glass-chart" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {assetTypeData && (
+                  <div style={{ width: '100%', height: '100%' }}>
+                    <Pie
+                      data={assetTypeData}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '50%',
+                        plugins: {
+                          legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 12, font: { size: 12 }, color: 'var(--text-primary)' }
+                          }
+                        },
+                        animation: { duration: 900, easing: 'easeOutQuart' },
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Priority grafico */}
-  <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+  <div className="card glassy animate-slide-in" style={{ marginBottom: 'var(--spacing-lg)' }}>
           <div className="card-inner">
-          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Prioridades (conteo)</h3>
+          <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Prioridades</h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades por nivel de prioridad</p>
           </div>
-          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-chart" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {priorityData && (
               <div style={{ width: '100%', height: '100%' }}>
                 <Bar
@@ -267,14 +362,44 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Puntaje Ponderado grafico */}
-  <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        {/* Status grafico */}
+  <div className="card glassy animate-slide-in" style={{ marginBottom: 'var(--spacing-lg)' }}>
           <div className="card-inner">
-          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Puntaje Ponderado (Si / No)</h3>
+          <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Status</h3>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Conteo por estado</p>
+          </div>
+          <div className="glass-chart" style={{ height: '320px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {statusData && (
+              <div style={{ width: '100%', height: '100%' }}>
+                <Bar
+                  data={statusData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      x: { ticks: { color: 'var(--text-muted)', font: { size: 12 } }, grid: { color: 'var(--border-color)' } },
+                      y: { ticks: { color: 'var(--text-muted)', font: { size: 12 } }, grid: { display: false } },
+                    },
+                    animation: { duration: 800, easing: 'easeOutQuart' },
+                  }}
+                />
+              </div>
+            )}
+          </div>
+          </div>
+        </div>
+
+        {/* Puntaje Ponderado grafico */}
+  <div className="card glassy animate-slide-in" style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <div className="card-inner">
+          <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Puntaje Ponderado</h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Distribución de vulnerabilidades según estado de puntaje</p>
           </div>
-          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-chart" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {puntajeData && (
               <div style={{ width: '100%', height: '100%' }}>
                 <Bar
@@ -302,13 +427,13 @@ export default function Dashboard() {
         </div>
 
         {/* Meses con mas vuln */}
-  <div className="card">
+  <div className="card glassy animate-slide-in">
           <div className="card-inner">
-          <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
-            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Meses con más vulnerabilidades (top 5)</h3>
+          <div className="section-header" style={{ paddingBottom: 'var(--spacing-md)', marginBottom: 'var(--spacing-md)' }}>
+            <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>Meses con más vulnerabilidades</h3>
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)', margin: 'var(--spacing-xs) 0 0' }}>Tendencia temporal de vulnerabilidades</p>
           </div>
-          <div style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="glass-chart" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {monthData && (
               <div style={{ width: '100%', height: '100%' }}>
                 <Bar
