@@ -55,7 +55,6 @@ duplicados = []
 def upload_csv():
     global processed_df, duplicados
     file = request.files.get('file') or request.files.get('fileA')
-    # Elimina todos los prints de depuración
     cruzar_informacion = request.form.get('cruzarInformacion') == 'true'
     file_b = request.files.get('fileB')
     eliminar_puertos = request.form.get('eliminarPuertos') == 'true'
