@@ -4,7 +4,7 @@ services:
     build: ./server-flask
     container_name: backend
     ports:
-      - "5000:5000"
+      - "5001:5000"
     environment:
       - FLASK_ENV=production
     healthcheck:
@@ -16,7 +16,7 @@ services:
     build: ./client-react
     container_name: frontend
     environment:
-      - VITE_API_URL=http://localhost:5000
+      - VITE_API_URL=http://localhost:5001
     depends_on:
       - backend
     ports:
