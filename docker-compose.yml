@@ -2,11 +2,24 @@ version: '3.8'
 services:
   backend:
     build: ./server-flask
+    container_name: backend
     ports:
-      - "5001:5001"
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/upload"] 
+      interval: 30s
+      timeout: 5s
+      retries: 3
   frontend:
     build: ./client-react
-    ports:
-      - "3000:80"
+    container_name: frontend
+    environment:
+      - VITE_API_URL=http://localhost:5000
     depends_on:
       - backend
+    ports:
+      - "3000:80"
+    # Opcional: reinicio automático
+    restart: unless-stopped

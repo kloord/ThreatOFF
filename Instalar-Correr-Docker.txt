@@ -1,0 +1,13 @@
+cd C:\Users\kloord\Documents\ThreatOFF
+
+# Construir las imágenes (primera vez o después de cambios)
+docker compose build --no-cache
+
+# Levantar los servicios
+docker compose up -d
+
+# Ver logs en tiempo real (opcional)
+docker compose logs -f
+
+# Verificar estado de los contenedores
+docker compose ps

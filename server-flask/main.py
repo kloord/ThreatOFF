@@ -13,7 +13,7 @@ REQUIRED_COLUMNS = {
     "#",
     "Status",
     "Priority",
-    "Subjet",
+    "Subject",
     "Resource",
     "Tipo de Asset",
     "Updated",
@@ -163,7 +163,7 @@ def vista_previa():
 @app.route('/dashboard-data', methods=['GET'])
 def dashboard_data():
     """
-    Devuelve conteos agrupados por valor para las columnas 'Resource' y 'Subjet'.
+    Devuelve conteos agrupados por valor para las columnas 'Resource' y 'Subject'.
     Retorna top 10 de cada una.
     """
     global processed_df
@@ -177,11 +177,11 @@ def dashboard_data():
     for low, orig in cols_lower.items():
         if low == 'resource':
             resource_col = orig
-        if low == 'subjet' or low == 'subject':
+        if low == 'subject':
             subject_col = orig
 
     if resource_col is None and subject_col is None:
-        return jsonify({'status': 'error', 'message': 'No se encontraron columnas Resource ni Subjet en el dataset procesado'}), 400
+        return jsonify({'status': 'error', 'message': 'No se encontraron columnas Resource ni Subject en el dataset procesado'}), 400
 
     def top_counts(series, top_n=10):
         if series is None:
@@ -281,5 +281,6 @@ def descargar_excel():
 def hello_world():
     return 'Hello, World!'
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+if __name__ == "__main__":
+    # Asegura que el contenedor escuche correctamente
+    app.run(host="0.0.0.0", port=5000)
